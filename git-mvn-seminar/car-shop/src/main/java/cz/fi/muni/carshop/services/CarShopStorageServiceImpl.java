@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import cz.fi.muni.carshop.CarShopStorage;
 import cz.fi.muni.carshop.entities.Car;
 import cz.fi.muni.carshop.enums.CarTypes;
+import cz.fi.muni.carshop.exceptions.RequestedCarNotFoundException;
 
 public class CarShopStorageServiceImpl implements CarShopStorageService {
 
@@ -30,7 +31,27 @@ public class CarShopStorageServiceImpl implements CarShopStorageService {
 
 	@Override
 	public void addCarToStorage(Car car) {
+            if (car.getPrice() >= 0) {
 		CarShopStorage.getInstancce().getCars().computeIfAbsent(car.getType(), x -> new ArrayList<>()).add(car);
+            } else {
+                throw new IllegalArgumentException("Price cannot be negative");
+            }
 	}
+
+    @Override
+    public void sellCar(Car car) throws RequestedCarNotFoundException {
+        Map<CarTypes, List<Car>> allCars = CarShopStorage.getInstancce().getCars();
+        List<Car> cars = allCars.get(car.getType());
+        
+        boolean deleted = false;
+        if (cars != null && !cars.isEmpty()) {
+             deleted = cars.remove(car);
+        }
+        if (!deleted) {
+        throw new RequestedCarNotFoundException("Car " + car + " was not found");
+        }
+    }
+        
+        
 
 }
